@@ -24,18 +24,21 @@ jobs:
       with:
         gradle-version: '8.7'
 
-    - name: Extract ZIP files
+    - name: Extract All Nested ZIP Files
       run: |
-        for f in $(find . -maxdepth 2 -name "*.zip"); do
-          echo "Extracting $f..."
-          unzip -o "$f" -d .
+        while [ $(find . -name "*.zip" | wc -l) -gt 0 ]; do
+          for f in $(find . -name "*.zip"); do
+            echo "Extracting $f..."
+            unzip -o "$f" -d .
+            rm -f "$f"
+          done
         done
 
     - name: Find and Build APK
       run: |
         PROJECT_DIR=$(find . -name "settings.gradle*" -exec dirname {} \; | head -n 1)
         if [ -n "$PROJECT_DIR" ]; then
-          echo "Found project at: $PROJECT_DIR"
+          echo "Found Android project at: $PROJECT_DIR"
           cd "$PROJECT_DIR"
           gradle assembleDebug --no-daemon
         else
@@ -48,3 +51,4 @@ jobs:
       with:
         name: app-debug
         path: '**/build/outputs/apk/debug/*.apk'
+
